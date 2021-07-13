@@ -157,10 +157,23 @@ module.exports = class OpenSubtitles {
      * @param {String}  [query.imdb] - Matching IMDb id
      * @param {Number}  [query.moviebytesize] - Filesize in bytes
      * @param {String}  [query.moviehash] - OSDb hash
+     * @param {Boolean} [query.remote] - Whether this is a remote request, meaning
+     *                                   the local file cannot exist
      */
     identify(query) {
         if (!query) throw Error('Missing path')
-        if (!query.path && !query.moviehash && !query.moviebytesize) query = {path: query}
+        if (query.remote === true) {
+            if (!query.moviehash) {
+                throw new Error('Missing required parameter for remote request: moviehash');
+            }
+            if (!query.moviebytesize) {
+                throw new Error('Missing required parameter for remote request: moviebytesize');
+            }
+        }
+
+        if (!query.path && !query.moviehash && !query.moviebytesize) {
+            query = {path: query};
+        }
 
         const isFileLocal = !(query.moviehash && query.moviebytesize);
 
