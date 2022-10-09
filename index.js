@@ -175,8 +175,6 @@ module.exports = class OpenSubtitles {
             query = {path: query};
         }
 
-        const isFileLocal = !(query.moviehash && query.moviebytesize);
-
         return this.login()
             .then(() => {
                 if (query.moviehash && query.moviebytesize) {
@@ -194,22 +192,7 @@ module.exports = class OpenSubtitles {
             })
             .then(response => {
                 if (response.data === String() || !response.status.match(/200/)) throw Error(response.status || 'OpenSubtitles unknown error')
-
-                let id
-                if (isFileLocal) {
-                    id = query.imdb || libid.readNFO(query.path)
-                }
-
-                if (response.data[query.moviehash].length === 0 && isFileLocal && id) {
-                    return this.api.InsertMovieHash(this.credentials.status.token, [{
-                        moviehash: query.moviehash,
-                        moviebytesize: query.moviebytesize,
-                        imdbid: id.replace('tt', ''),
-                        moviefilename: require('path').basename(query.path)
-                    }])
-                } else {
-                    return response
-                }
+                return response
             })
             .then(response => libid.parseResponse(response, query))
             .then(data => {
